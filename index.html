@@ -87,4 +87,64 @@
     </div>
   </footer>
 </body>
+  Sub GetBacklogTasks()
+
+    'APIキー
+    Dim apiKey As String
+    apiKey = "Your API Key"
+
+    'プロジェクトID
+    Dim projectId As Integer
+    projectId = 123456
+
+    '課題の種類（バグ、タスク、要望など）
+    Dim issueType As String
+    issueType = "all"
+
+    '課題のステータス（未対応、処理中、完了など）
+    Dim statusId As String
+    statusId = "1"
+
+    'backlog APIのURL
+    Dim apiUrl As String
+    apiUrl = "https://yourdomain.backlog.com/api/v2/issues?apiKey=" & apiKey & "&projectId[]=" & projectId & "&issueType[]=" & issueType & "&statusId[]=" & statusId
+
+    'HTTPリクエストの作成
+    Dim http As Object
+    Set http = CreateObject("MSXML2.XMLHTTP")
+    http.Open "GET", apiUrl, False
+    http.setRequestHeader "Content-Type", "application/json"
+    http.send
+
+    'HTTPレスポンスから課題一覧を取得
+    Dim response As String
+    response = http.responseText
+
+    'JSONパース
+    Dim json As Object
+    Set json = JsonConverter.ParseJson(response)
+
+    'Excelシートに課題一覧を書き込み
+    Dim sheet As Worksheet
+    Set sheet = ActiveWorkbook.Sheets("Sheet1")
+    sheet.Cells.ClearContents
+    sheet.Cells(1, 1).Value = "課題番号"
+    sheet.Cells(1, 2).Value = "課題の概要"
+    sheet.Cells(1, 3).Value = "課題の詳細"
+    sheet.Cells(1, 4).Value = "ステータス"
+    sheet.Cells(1, 5).Value = "優先度"
+
+    Dim i As Integer
+    i = 2
+
+    For Each issue In json
+        sheet.Cells(i, 1).Value = issue("issueKey")
+        sheet.Cells(i, 2).Value = issue("summary")
+        sheet.Cells(i, 3).Value = issue("description")
+        sheet.Cells(i, 4).Value = issue("status")("name")
+        sheet.Cells(i, 5).Value = issue("priority")("name")
+        i = i + 1
+    Next issue
+
+End Sub
 </html>
